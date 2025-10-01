@@ -9,6 +9,15 @@ import connectDB from "./db/index.js";
 
 
 connectDB()
+.then(()=>{
+    console.log("MONGODB CONNECTED SUCCESSFULLY")       
+    app.listen(process.env.PORT ||  8000 , ()=>{
+        console.log(`Server is listening on port ${process.env.PORT || 8000}`)
+    })
+})
+.catch((err)=>{
+    console.log("MONGODB CONNECTION FAILED : ", err)
+})
 
 
 
