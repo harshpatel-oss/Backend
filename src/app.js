@@ -16,4 +16,16 @@ app.use(cookieParser());
 
 
 
+//routes    
+
+import userRouter from './routes/user.routes.js';
+
+//routes declaration
+// ab router ko alag se likh rhe hae to router lane k liye middleware use krna pdta hae
+// /users yaha pe prefix hae jo sare user routes k sath lgana hae
+// http://localhost:5000/api/v1/users/login
+// http://localhost:5000/api/v1/users/register
+
+app.use('/api/v1/users', userRouter);
+
 export default app;// module.exports = app;
