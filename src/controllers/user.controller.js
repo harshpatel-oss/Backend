@@ -233,5 +233,151 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
 });
 
+const changeCurrentUserPassword = asyncHandler(async (req, res) => {
+     const {oldPassword , newPassword} = req.body;
 
-export { registerUser, loginUser , logoutUser ,refreshAccessToken };
+     const user = await User.findById(req.user._id);
+
+     if(!user){
+        throw new ApiError(404 , "User not found");
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if(!isPasswordCorrect){
+        throw new ApiError(400 , "Old password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave : false});
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200 , {} , "Password changed successfully")
+    );
+     
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200 , req.user , "Current user fetched successfully")
+    );
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const {fullName , username , email } = req.body;
+    const updatedData = {};
+
+    if(fullName?.trim() === ''){
+        throw new ApiError(400 , "Full name cannot be empty");
+    }   
+    if(username?.trim() === ''){
+        throw new ApiError(400 , "Username cannot be empty");
+    }  
+    if(email?.trim() === ''){
+        throw new ApiError(400 , "Email cannot be empty");
+    }  
+    User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                fullName:fullName ,
+                username:username?.toLowerCase(),
+                email:email
+            }
+        },
+        {
+            new:true //yeh updated user return karega
+        }
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200 , updatedUser , "User details updated successfully")
+    )
+
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path;
+    if(!avatarLocalPath){
+        throw new ApiError(400 , "Avatar file is required");
+    }   
+
+    const avatar = await uploadOnCloudinary
+    (avatarLocalPath);
+
+    if(!avatar.url){
+        throw new ApiError(500 , "Error while uploading avatar, please try again");
+    }   
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{  
+                avatar:avatar.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200 , updatedUser , "User avatar updated successfully")
+    );  
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req.file?.path;
+    if(!coverImageLocalPath){
+        throw new ApiError(400 , "Cover image file is missing");
+    }
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    //ye function maine cloudinary.js me banaya hai aur ye object return krta hai jisme url hota hai uploaded file ka
+    if(!coverImage.url){
+        throw new ApiError(500 , "Error while uploading cover image, please try again");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(   
+        req.user?._id,
+        {
+            $set:{  
+                coverImage:coverImage.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password");  
+
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200 , updatedUser , "User cover image updated successfully")
+    );  
+
+});
+
+   
+
+export { 
+
+       registerUser,
+       loginUser ,
+       logoutUser ,
+       refreshAccessToken,
+       changeCurrentUserPassword ,
+       getCurrentUser ,
+       updateAccountDetails ,
+       updateUserAvatar ,
+       updateUserCoverImage
+    
+       };
