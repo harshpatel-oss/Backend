@@ -1,5 +1,6 @@
 //require('dotenv').config({path: './.env'}) //ye bhi use kar skte hai env variable ko access krne k liye
 
+// file responsible for starting the backend
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 
@@ -8,14 +9,18 @@ import { DB_NAME } from "./constant.js";
 import connectDB from "./db/index.js";
 import app from "./app.js";
 
+// professional flow - > db connected first then server start hota hai
 connectDB()
 .then(()=>{
     console.log("MONGODB CONNECTED SUCCESSFULLY")       
-    app.listen(process.env.PORT ||  8000 , ()=>{
+    app.listen(process.env.PORT ||  8000 , ()=>{ //callback function
         console.log(`Server is listening on port ${process.env.PORT || 8000}`)
+        
     })
 })
 .catch((err)=>{
+    // if db connection fails due to reasons like network issues, invalid URI, etc., then server will not start and error will be logged in console
+    //console.error("MONGODB CONNECTION FAILED : ", err)
     console.log("MONGODB CONNECTION FAILED : ", err)
 })
 
